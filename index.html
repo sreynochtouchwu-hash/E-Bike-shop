@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>E-Bike Shop</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        background: #0a0a0a;
+        color: white;
+        font-family: sans-serif;
+      }
+
+      /* NAV */
+      .navbar {
+        background: black;
+        border-bottom: 1px solid #00bfff;
+      }
+      .logo {
+        color: #00bfff;
+        font-weight: bold;
+      }
+
+      /* HERO */
+      .hero {
+        height: 350px;
+        background: url("photo/bg.jpg") center/cover;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      .hero-title {
+        color: #00bfff;
+        font-size: 42px;
+        font-weight: bold;
+      }
+      .hero-sub {
+        color: #ddd;
+      }
+
+      /* CARD */
+      .card {
+        background: #151515;
+        border-radius: 14px;
+        text-align: center;
+        padding: 12px;
+        transition: 0.3s;
+        overflow: hidden;
+      }
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0 20px rgba(0, 191, 255, 0.5);
+      }
+      .card-img {
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+        border-radius: 12px;
+      }
+      .card-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .card h6,
+      .card p {
+        color: #00bfff;
+        font-weight: bold;
+      }
+
+      /* BUTTON */
+      .btn-blue {
+        background: #00bfff;
+        color: black;
+        border: none;
+        border-radius: 8px;
+      }
+
+      /* CART */
+      .cart-box {
+        position: fixed;
+        right: -350px;
+        top: 0;
+        width: 320px;
+        height: 100%;
+        background: #111;
+        padding: 20px;
+        transition: 0.3s;
+        display: flex;
+        flex-direction: column;
+        z-index: 999;
+      }
+      .cart-box.active {
+        right: 0;
+      }
+      #cart-items {
+        flex: 1;
+        overflow-y: auto;
+      }
+      #cart-footer {
+        border-top: 1px solid #333;
+        padding-top: 10px;
+      }
+
+      .cart-item {
+        background: #1a1a1a;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+      }
+
+      /* OVERLAY */
+      #overlay {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: none;
+        z-index: 998;
+      }
+      #overlay.active {
+        display: block;
+      }
+
+      /* CHECKOUT */
+      .checkout {
+        display: none;
+        padding: 50px;
+      }
+      .checkout-box {
+        background: #121212;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 0 15px rgba(0, 191, 255, 0.2);
+      }
+      .total-box {
+        background: #1a1a1a;
+        padding: 10px;
+        border-radius: 10px;
+        text-align: center;
+      }
+      .checkout-btn {
+        font-size: 16px;
+        font-weight: bold;
+        padding: 12px;
+        transition: 0.3s;
+      }
+      .checkout-btn:hover {
+        background: #00e6ff;
+      }
+
+      /* CONTACT */
+      .contact-box {
+        background: #121212;
+        padding: 20px;
+        border-radius: 12px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- NAV -->
+    <nav class="navbar p-3">
+      <div class="container d-flex justify-content-between">
+        <!-- LOGO IMAGE -->
+        <div class="d-flex align-items-center gap-2">
+          <img src="photo/logo.png" width="40" />
+          <h4 class="logo m-0">E-Bike Shop</h4>
+        </div>
+
+        <div id="cart-btn" style="cursor: pointer">
+          🛒 <span id="cart-count">0</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div>
+        <h1 class="hero-title">Electric Motorbike ⚡</h1>
+        <p class="hero-sub">Save energy • Ride smart • Future is electric</p>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="container mt-5">
+      <div class="row" id="product-list"></div>
+    </div>
+
+    <!-- OVERLAY -->
+    <div id="overlay"></div>
+
+    <!-- CART -->
+    <div class="cart-box" id="cart-box">
+      <h5>Cart</h5>
+      <div id="cart-items"></div>
+      <div id="cart-footer"></div>
+    </div>
+
+    <!-- CHECKOUT -->
+    <div class="container checkout" id="checkout">
+      <h2 class="text-center mb-4">💳 Checkout</h2>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="checkout-box">
+            <input class="form-control mb-2" placeholder="Name" />
+            <input class="form-control mb-2" placeholder="Phone" />
+            <input class="form-control mb-2" placeholder="Address" />
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="checkout-box">
+            <h5 class="mb-3">🧾 Order Summary</h5>
+
+            <div id="summary" class="mb-3"></div>
+
+            <div class="total-box mb-3">
+              <h4 id="total"></h4>
+            </div>
+
+            <button
+              onclick="placeOrder()"
+              class="btn btn-blue w-100 checkout-btn"
+            >
+              🚀 Place Order
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="container mt-5">
+      <h2 class="text-center mb-4">📞 Contact</h2>
+      <div class="contact-box">
+        <p>📞Phone: 012 345 678</p>
+        <p>📤Email: ebike@shop.com</p>
+        <p>📍Address: 123 E-Bike Street, Phnom Penh.</p>
+      </div>
+    </div>
+
+    <script>
+      /* PRODUCTS */
+      let products = [
+        {
+          id: 1,
+          name: "Honda Electric Bike",
+          price: 900,
+          img: "photo/honda-electric-bike.jpg",
+        },
+        {
+          id: 2,
+          name: "Yamaha E Scooter",
+          price: 850,
+          img: "photo/yamaha-e-scooter.jpg",
+        },
+        {
+          id: 3,
+          name: "Smart Electric Bike",
+          price: 700,
+          img: "photo/smart-electric-bike.jpg",
+        },
+        {
+          id: 4,
+          name: "Eco Motorbike",
+          price: 600,
+          img: "photo/eco-motorbike.jpg",
+        },
+
+        {
+          id: 5,
+          name: "Luxury E-Bike",
+          price: 1200,
+          img: "photo/luxury-e-bike.jpg",
+        },
+        {
+          id: 6,
+          name: "Mini Electric Scooter",
+          price: 500,
+          img: "photo/mini-electric-scooter.jpg",
+        },
+        {
+          id: 7,
+          name: "Fast E-Bike",
+          price: 750,
+          img: "photo/fast-e-bike.jpg",
+        },
+        {
+          id: 8,
+          name: "Modern Electric Bike",
+          price: 950,
+          img: "photo/modern-electric-bike.jpg",
+        },
+      ];
+      let cart = [];
+
+      /* RENDER */
+      function renderProducts() {
+        let html = "";
+        products.forEach((p) => {
+          html += `
+<div class="col-md-3 mb-4">
+<div class="card">
+<div class="card-img">
+<img src="${p.img}">
+</div>
+<h6>${p.name}</h6>
+<p>$${p.price}</p>
+<button onclick="add(${p.id})" class="btn btn-blue">Add</button>
+</div>
+</div>`;
+        });
+        document.getElementById("product-list").innerHTML = html;
+      }
+
+      /* ADD */
+      function add(id) {
+        let p = products.find((x) => x.id === id);
+        let item = cart.find((x) => x.id === id);
+        item ? item.qty++ : cart.push({ ...p, qty: 1 });
+        renderCart();
+        openCart();
+      }
+
+      /* CART */
+      function renderCart() {
+        let html = "",
+          total = 0,
+          count = 0;
+
+        cart.forEach((p) => {
+          total += p.price * p.qty;
+          count += p.qty;
+
+          html += `
+<div class="cart-item d-flex justify-content-between align-items-center">
+<div class="d-flex align-items-center gap-2">
+<img src="${p.img}" style="width:50px;height:50px;border-radius:8px">
+<div>
+<div>${p.name}</div>
+<small>$${p.price} x ${p.qty}</small>
+</div>
+</div>
+<div>
+<button onclick="qty(${p.id},-1)">-</button>
+<button onclick="qty(${p.id},1)">+</button>
+<button onclick="removeItem(${p.id})">x</button>
+</div>
+</div>`;
+        });
+
+        document.getElementById("cart-items").innerHTML = html;
+        document.getElementById("cart-count").innerText = count;
+
+        document.getElementById("cart-footer").innerHTML = `
+<h6>Total: $${total}</h6>
+<button onclick="goCheckout()" class="btn btn-blue w-100">Checkout</button>
+`;
+
+        renderSummary();
+      }
+
+      function qty(id, n) {
+        let item = cart.find((p) => p.id === id);
+        item.qty += n;
+        if (item.qty <= 0) cart = cart.filter((p) => p.id !== id);
+        renderCart();
+      }
+
+      function removeItem(id) {
+        cart = cart.filter((p) => p.id !== id);
+        renderCart();
+      }
+
+      /* CART CONTROL */
+      function openCart() {
+        document.getElementById("cart-box").classList.add("active");
+        document.getElementById("overlay").classList.add("active");
+      }
+      function closeCart() {
+        document.getElementById("cart-box").classList.remove("active");
+        document.getElementById("overlay").classList.remove("active");
+      }
+
+      document.getElementById("cart-btn").onclick = openCart;
+      document.getElementById("overlay").onclick = closeCart;
+
+      /* CHECKOUT */
+      function goCheckout() {
+        document.getElementById("checkout").style.display = "block";
+        document
+          .getElementById("checkout")
+          .scrollIntoView({ behavior: "smooth" });
+        closeCart();
+      }
+
+      /* SUMMARY */
+      function renderSummary() {
+        let html = "",
+          total = 0;
+        cart.forEach((p) => {
+          let sub = p.price * p.qty;
+          total += sub;
+          html += `<div>${p.name} x ${p.qty} = $${sub}</div>`;
+        });
+        document.getElementById("summary").innerHTML = html;
+        document.getElementById("total").innerText = "Total $" + total;
+      }
+
+      /* ORDER */
+      function placeOrder() {
+        alert("Order success ⚡");
+        cart = [];
+        renderCart();
+        document.getElementById("checkout").style.display = "none";
+      }
+
+      renderProducts();
+    </script>
+  </body>
+</html>
